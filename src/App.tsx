@@ -8,13 +8,14 @@ import type { ScheduleEvent } from "./types/event"
 
 function App() {
   const [text, setText] = useState("")
+  const [rolloverYear, setRolloverYear] = useState(true)
   const [events, setEvents] = useState<ScheduleEvent[]>([])
   const [message, setMessage] = useState("")
   const [unparsedLines, setUnparsedLines] = useState<string[]>([])
   const [warnings, setWarnings] = useState<string[]>([])
 
   const handleParse = () => {
-    const result = parseScheduleText(text)
+    const result = parseScheduleText(text, { rolloverYear })
 
     setEvents(result.events)
     setUnparsedLines(result.unparsedLines)
@@ -68,6 +69,15 @@ function App() {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={rolloverYear}
+            onChange={(e) => setRolloverYear(e.target.checked)}
+          />
+          月が戻ったら翌年として扱う
+        </label>
 
         <button type="button" className="primary-button" onClick={handleParse}>
           解析する

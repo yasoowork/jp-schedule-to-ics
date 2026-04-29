@@ -3,11 +3,17 @@ import type { ParseResult } from "../types/parser"
 
 const DEFAULT_TITLE = "予定"
 
+type ParseOptions = {
+  defaultYear?: number
+  rolloverYear?: boolean
+}
+
 type DateInfo = {
   year: number
   month: number
   day: number
   notes: string[]
+  hasExplicitYear: boolean
 }
 
 type DateRangeInfo = {
@@ -30,9 +36,12 @@ type TitleResult = {
   index: number
 }
 
-export function parseScheduleText(text: string): ParseResult {
-  const defaultYear = new Date().getFullYear()
-
+export function parseScheduleText(
+  text: string,
+  options: ParseOptions = {}
+): ParseResult {
+  const defaultYear = options.defaultYear ?? new Date().getFullYear()
+  const rolloverYear = options.rolloverYear ?? true
   const lines = normalizeText(text)
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -43,6 +52,7 @@ export function parseScheduleText(text: string): ParseResult {
   const warnings: string[] = []
 
   let currentYear = defaultYear
+  let previousMonth: number | null = null
   let currentMonth: number | null = null
   let currentDay: number | null = null
   let currentDayNotes: string[] = []
@@ -81,7 +91,17 @@ export function parseScheduleText(text: string): ParseResult {
 
     const date = parseDateLine(line, defaultYear)
     if (date) {
-      currentYear = date.year
+      if (date.hasExplicitYear) {
+        currentYear = date.year
+      } else if (
+        rolloverYear &&
+        previousMonth !== null &&
+        date.month < previousMonth
+      ) {
+        currentYear += 1
+      }
+
+      previousMonth = date.month
       currentMonth = date.month
       currentDay = date.day
       currentDayNotes = date.notes
@@ -204,6 +224,7 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
       month: Number(slashDate[2]),
       day: Number(slashDate[3]),
       notes: extractNotes(slashDate[4]),
+      hasExplicitYear: Boolean(slashDate[1]),
     }
   }
 
@@ -217,6 +238,7 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
       month: Number(jpDate[2]),
       day: Number(jpDate[3]),
       notes: extractNotes(jpDate[4]),
+      hasExplicitYear: Boolean(jpDate[1]),
     }
   }
 

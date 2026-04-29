@@ -305,3 +305,14 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.checkbox-label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.checkbox-label input {
+  margin-right: 8px;
+}
