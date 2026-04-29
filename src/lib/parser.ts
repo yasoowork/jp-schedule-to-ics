@@ -2,6 +2,18 @@ import type { ScheduleEvent } from "../types/event"
 
 const DEFAULT_TITLE = "予定"
 
+type TimeRange = {
+  startHour: number
+  startMinute: number
+  endHour: number
+  endMinute: number
+}
+
+type TitleResult = {
+  title: string
+  index: number
+}
+
 export function parseScheduleText(text: string): ScheduleEvent[] {
   const defaultYear = new Date().getFullYear()
 
@@ -44,7 +56,7 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
       continue
     }
 
-    const title = findNextTitle(lines, i + 1)
+    const titleResult = findNextTitle(lines, i + 1)
 
     const start = new Date(
       currentYear,
@@ -63,13 +75,13 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
     )
 
     events.push({
-      title,
+      title: titleResult.title,
       start,
       end,
       note: currentStaff ? `担当：${currentStaff}` : undefined,
     })
 
-    i++
+    i = titleResult.index
   }
 
   return events
@@ -105,9 +117,7 @@ function parseDateLine(
     }
   }
 
-  const jpDate = cleaned.match(
-    /^(?:(\d{4})年)?(\d{1,2})月(\d{1,2})日/
-  )
+  const jpDate = cleaned.match(/^(?:(\d{4})年)?(\d{1,2})月(\d{1,2})日/)
 
   if (jpDate) {
     return {
@@ -135,14 +145,7 @@ function isClosedLine(line: string): boolean {
   )
 }
 
-function parseTimeRange(line: string):
-  | {
-      startHour: number
-      startMinute: number
-      endHour: number
-      endMinute: number
-    }
-  | null {
+function parseTimeRange(line: string): TimeRange | null {
   const patterns = [
     /^(\d{1,2}):(\d{2})\s*〜\s*(\d{1,2}):(\d{2})$/,
     /^(\d{1,2})時(\d{2})分?\s*〜\s*(\d{1,2})時(\d{2})分?$/,
@@ -176,7 +179,7 @@ function parseTimeRange(line: string):
   return null
 }
 
-function findNextTitle(lines: string[], startIndex: number): string {
+function findNextTitle(lines: string[], startIndex: number): TitleResult {
   for (let i = startIndex; i < lines.length; i++) {
     const line = lines[i]
 
@@ -185,8 +188,14 @@ function findNextTitle(lines: string[], startIndex: number): string {
     if (parseStaffLine(line)) continue
     if (isClosedLine(line)) continue
 
-    return line
+    return {
+      title: line,
+      index: i,
+    }
   }
 
-  return DEFAULT_TITLE
+  return {
+    title: DEFAULT_TITLE,
+    index: startIndex,
+  }
 }
