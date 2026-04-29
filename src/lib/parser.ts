@@ -597,9 +597,9 @@ function extractNotes(text: string | undefined): string[] {
   if (!text) return []
 
   const normalized = text
-    .replace(/(担当者?\s*:?\s*)/g, "\n担当: ")
     .replace(/(《担当\s*:?\s*([^》]+)》)/g, "\n担当: $2")
     .replace(/(《([^》]+)》)/g, "\n担当: $2")
+    .replace(/(担当者?\s*:?\s*)/g, "\n担当: ")
     .replace(/(講師\s*:?\s*)/g, "\n講師: ")
     .replace(/(インストラクター\s*:?\s*)/g, "\nインストラクター: ")
     .replace(/(場所\s*:?\s*)/g, "\n場所: ")
@@ -609,10 +609,13 @@ function extractNotes(text: string | undefined): string[] {
     .replace(/(※)/g, "\n※")
     .trim()
 
-  return normalized
-    .split("\n")
-    .map((line) => cleanMemoLine(line))
-    .filter((line) => line.length > 0)
+  return unique(
+    normalized
+      .split("\n")
+      .map((line) => cleanMemoLine(line))
+      .filter((line) => line.length > 0)
+      .filter((line) => !/^担当[:：]?$/.test(line))
+  )
 }
 
 function isMemoLine(line: string): boolean {
