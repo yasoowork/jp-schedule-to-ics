@@ -42,7 +42,7 @@ export function EventEditor({ events, onChange }: EventEditorProps) {
   }
 
   if (events.length === 0) {
-    return <p className="empty">解析された予定はありません。</p>
+    return <p className="empty">解析後、ここに予定一覧が表示されます。</p>
   }
 
   return (

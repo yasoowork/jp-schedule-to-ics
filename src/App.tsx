@@ -76,10 +76,22 @@ function App() {
         <textarea
           className="textarea"
           rows={14}
-          placeholder="ここにスケジュール文を貼り付け"
+          placeholder={`例：
+
+5/2 18:00〜19:00 キックボクシング
+
+5/3（月）
+20:00~21:00
+柔術
+
+5/4 20:00 ボクシング`}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
+
+        <p className="input-help">
+          1行形式・複数行形式・全角数字・PM表記などに対応しています。
+        </p>
 
         <label className="checkbox-label">
           <input
@@ -87,7 +99,7 @@ function App() {
             checked={rolloverYear}
             onChange={(e) => setRolloverYear(e.target.checked)}
           />
-          月が戻ったら翌年として扱う
+          年またぎを自動補正
         </label>
 
         <button type="button" className="primary-button" onClick={handleParse}>
@@ -135,19 +147,6 @@ function App() {
       </section>
 
       <footer className="footer">
-        <div className="footer-section">
-          <h3>対応しているテキスト例</h3>
-
-          <pre className="footer-example">{`■5/2（土）
-担当者：田中
-17:00〜18:00
-キックボクシング`}</pre>
-
-          <p>
-            日付行、時間行、予定名行が分かれている日本語スケジュール文に対応しています。
-          </p>
-        </div>
-
         <div className="footer-section">
           <h3>プライバシー</h3>
 
