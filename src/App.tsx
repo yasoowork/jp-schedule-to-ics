@@ -42,7 +42,11 @@ function App() {
 
     try {
       const icsText = generateICS(events)
-      downloadTextFile(icsText, "schedule.ics")
+      const now = new Date()
+      const filename =
+        `jp-schedule-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.ics`
+
+      downloadTextFile(icsText, filename)
       setMessage("ICSファイルを生成しました。")
     } catch (error) {
       console.error(error)
