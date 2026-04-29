@@ -42,13 +42,25 @@ function App() {
         </p>
       </header>
 
+      <section className="section info-section">
+        <h2>使い方</h2>
+        <ol>
+          <li>スケジュール文を貼り付けます。</li>
+          <li>解析結果を確認し、必要に応じて修正します。</li>
+          <li>ICSファイルをダウンロードしてカレンダーに登録します。</li>
+        </ol>
+        <p>
+          入力内容はサーバーに送信されず、ブラウザ内で処理されます。
+        </p>
+      </section>
+
       <section className="section">
         <h2>1. スケジュール文を貼り付け</h2>
 
         <textarea
           className="textarea"
           rows={14}
-          placeholder="ここにLINEのスケジュール文を貼り付け"
+          placeholder="ここにスケジュール文を貼り付け"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -73,9 +85,19 @@ function App() {
         {message && <p className="message">{message}</p>}
       </section>
 
+      <section className="section info-section">
+        <h2>免責</h2>
+        <p>
+          生成結果は必ず確認してください。本ツールによる予定の誤登録、通知漏れ、損害等について責任は負いません。
+        </p>
+      </section>
+
       <footer className="footer">
         <p>
-          生成結果は必ず確認してください。本ツールによる予定の誤登録や損害について責任は負いません。
+          Created by{" "}
+          <a href="https://yasoo.work" target="_blank" rel="noreferrer">
+            yasoo.work
+          </a>
         </p>
       </footer>
     </main>
