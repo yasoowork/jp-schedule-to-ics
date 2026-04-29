@@ -31,6 +31,14 @@ type TimeRange = {
   notes: string[]
 }
 
+type DateTimeInfo = {
+  year: number
+  month: number
+  day: number
+  timeRange: TimeRange
+  hasExplicitYear: boolean
+}
+
 type TitleResult = {
   title: string
   index: number
@@ -65,6 +73,26 @@ export function parseScheduleText(
       continue
     }
 
+    const singleLineEvent = parseSingleLineEvent(line, currentYear, defaultYear)
+
+    if (singleLineEvent) {
+      const eventMonth = singleLineEvent.start.getMonth() + 1
+
+      if (
+        rolloverYear &&
+        previousMonth !== null &&
+        eventMonth < previousMonth
+      ) {
+        singleLineEvent.start.setFullYear(singleLineEvent.start.getFullYear() + 1)
+        singleLineEvent.end.setFullYear(singleLineEvent.end.getFullYear() + 1)
+        currentYear += 1
+      }
+
+      previousMonth = eventMonth
+      events.push(singleLineEvent)
+      continue
+    }
+
     const dateRange = parseDateRange(line)
     if (dateRange) {
       const start = new Date(
@@ -86,6 +114,55 @@ export function parseScheduleText(
         allDay: true,
       })
 
+      continue
+    }
+
+    const dateTime = parseDateTimeLine(line, currentYear, defaultYear)
+
+    if (dateTime) {
+      if (dateTime.hasExplicitYear) {
+        currentYear = dateTime.year
+      } else if (
+        rolloverYear &&
+        previousMonth !== null &&
+        dateTime.month < previousMonth
+      ) {
+        currentYear += 1
+      }
+
+      previousMonth = dateTime.month
+
+      const titleResult = findNextTitle(lines, i + 1, defaultYear)
+
+      const start = new Date(
+        currentYear,
+        dateTime.month - 1,
+        dateTime.day,
+        dateTime.timeRange.startHour,
+        dateTime.timeRange.startMinute
+      )
+
+      const end = new Date(
+        currentYear,
+        dateTime.month - 1,
+        dateTime.day,
+        dateTime.timeRange.endHour,
+        dateTime.timeRange.endMinute
+      )
+
+      events.push({
+        title: titleResult.title,
+        start,
+        end,
+        note:
+          dateTime.timeRange.notes.length > 0
+            ? dateTime.timeRange.notes.join("\n")
+            : undefined,
+        allDay: false,
+      })
+
+      pendingEventNotes = []
+      i = titleResult.index
       continue
     }
 
@@ -139,7 +216,7 @@ export function parseScheduleText(
       const notes = unique([
         ...currentDayNotes,
         ...pendingEventNotes,
-        ...timeRange.notes,
+        ...(inlineTitle ? [] : timeRange.notes),
       ])
 
       events.push({
@@ -200,14 +277,61 @@ export function parseScheduleText(
 
 function normalizeText(text: string): string {
   return text
+    .replace(/[０-９]/g, (char) =>
+      String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+    )
+    .replace(/[／]/g, "/")
+    .replace(/[．]/g, ".")
+    .replace(/[　]/g, " ")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
-    .replace(/[　]/g, " ")
     .replace(/[～~−―–—]/g, "〜")
     .replace(/[：]/g, ":")
     .replace(/[（]/g, "(")
     .replace(/[）]/g, ")")
     .replace(/[【】]/g, "")
+
+    // 1700 → 17:00
+    .replace(
+      /\b(\d{1,2})(\d{2})\b/g,
+      (_, hour, minute) => `${hour}:${minute}`
+    )
+
+    // PM5:00 / pm5:00 → 17:00
+    .replace(
+      /\b([AaPp][Mm])\s*(\d{1,2})(?::(\d{2}))?\b/g,
+      (_, ampm, hour, minute) => {
+        let h = Number(hour)
+
+        if (/pm/i.test(ampm) && h < 12) {
+          h += 12
+        }
+
+        if (/am/i.test(ampm) && h === 12) {
+          h = 0
+        }
+
+        return `${String(h).padStart(2, "0")}:${minute ?? "00"}`
+      }
+    )
+
+    // 5pm / 6am → 17:00 / 06:00
+    .replace(
+      /\b(\d{1,2})\s*([AaPp][Mm])\b/g,
+      (_, hour, ampm) => {
+        let h = Number(hour)
+
+        if (/pm/i.test(ampm) && h < 12) {
+          h += 12
+        }
+
+        if (/am/i.test(ampm) && h === 12) {
+          h = 0
+        }
+
+        return `${String(h).padStart(2, "0")}:00`
+      }
+    )
 }
 
 function parseDateLine(line: string, defaultYear: number): DateInfo | null {
@@ -262,13 +386,135 @@ function parseDateRange(line: string): DateRangeInfo | null {
   }
 }
 
+function parseSingleLineEvent(
+  line: string,
+  currentYear: number,
+  defaultYear: number
+): ScheduleEvent | null {
+  const cleaned = removeWeekdayParentheses(cleanLinePrefix(line))
+
+  const datePattern =
+    /(?:(\d{4})[\/.-])?(\d{1,2})[\/.-](\d{1,2})|(?:(\d{4})年)?(\d{1,2})月(\d{1,2})日/
+
+  const timeRangePattern =
+    /(\d{1,2}):(\d{2})\s*(?:〜|-)\s*(\d{1,2}):(\d{2})/
+
+  const startTimeOnlyPattern = /(\d{1,2}):(\d{2})/
+
+  const dateMatch = cleaned.match(datePattern)
+  if (!dateMatch) return null
+
+  const beforeDate = cleaned.slice(0, dateMatch.index).trim()
+  const afterDate = cleaned.slice((dateMatch.index ?? 0) + dateMatch[0].length).trim()
+
+  const year = Number(dateMatch[1] ?? dateMatch[4] ?? currentYear ?? defaultYear)
+  const month = Number(dateMatch[2] ?? dateMatch[5])
+  const day = Number(dateMatch[3] ?? dateMatch[6])
+
+  const timeRangeMatch = afterDate.match(timeRangePattern)
+
+  if (timeRangeMatch) {
+    const beforeTime = afterDate.slice(0, timeRangeMatch.index).trim()
+    const afterTime = afterDate
+      .slice((timeRangeMatch.index ?? 0) + timeRangeMatch[0].length)
+      .trim()
+
+    const title = cleanTitleLine([beforeDate, beforeTime, afterTime].filter(Boolean).join(" "))
+
+    if (title.length === 0) return null
+
+    return {
+      title,
+      start: new Date(
+        year,
+        month - 1,
+        day,
+        Number(timeRangeMatch[1]),
+        Number(timeRangeMatch[2])
+      ),
+      end: new Date(
+        year,
+        month - 1,
+        day,
+        Number(timeRangeMatch[3]),
+        Number(timeRangeMatch[4])
+      ),
+      allDay: false,
+    }
+  }
+
+  const startTimeOnlyMatch = afterDate.match(startTimeOnlyPattern)
+
+  if (startTimeOnlyMatch) {
+    const beforeTime = afterDate.slice(0, startTimeOnlyMatch.index).trim()
+    const afterTime = afterDate
+      .slice((startTimeOnlyMatch.index ?? 0) + startTimeOnlyMatch[0].length)
+      .trim()
+
+    const title = cleanTitleLine([beforeDate, beforeTime, afterTime].filter(Boolean).join(" "))
+
+    if (title.length === 0) return null
+
+    const start = new Date(
+      year,
+      month - 1,
+      day,
+      Number(startTimeOnlyMatch[1]),
+      Number(startTimeOnlyMatch[2])
+    )
+
+    const end = new Date(start)
+    end.setHours(end.getHours() + 1)
+
+    return {
+      title,
+      start,
+      end,
+      allDay: false,
+    }
+  }
+
+  return null
+}
+
+function parseDateTimeLine(
+  line: string,
+  currentYear: number,
+  defaultYear: number
+): DateTimeInfo | null {
+  const cleaned = removeWeekdayParentheses(cleanLinePrefix(line))
+
+  const dateMatch = cleaned.match(
+    /^(?:(\d{4})[\/.-])?(\d{1,2})[\/.-](\d{1,2})\s+(.+)$|^(?:(\d{4})年)?(\d{1,2})月(\d{1,2})日\s+(.+)$/
+  )
+
+  if (!dateMatch) return null
+
+  const year = Number(dateMatch[1] ?? dateMatch[5] ?? currentYear ?? defaultYear)
+  const month = Number(dateMatch[2] ?? dateMatch[6])
+  const day = Number(dateMatch[3] ?? dateMatch[7])
+  const timeText = dateMatch[4] ?? dateMatch[8]
+
+  const timeRange = parseTimeRange(timeText)
+
+  if (!timeRange) return null
+
+  return {
+    year,
+    month,
+    day,
+    timeRange,
+    hasExplicitYear: Boolean(dateMatch[1] ?? dateMatch[5]),
+  }
+}
+
 function parseTimeRange(line: string): TimeRange | null {
   const cleaned = cleanLinePrefix(line)
 
   const patterns = [
-    /^(\d{1,2}):(\d{2})\s*〜\s*(\d{1,2}):(\d{2})(.*)$/,
-    /^(\d{1,2})時(\d{2})分?\s*〜\s*(\d{1,2})時(\d{2})分?(.*)$/,
-    /^(\d{1,2})時\s*〜\s*(\d{1,2})時(.*)$/,
+    /^(\d{1,2}):(\d{2})\s*(?:〜|-)\s*(\d{1,2}):(\d{2})(.*)$/,
+    /^(\d{1,2})時(\d{2})分?\s*(?:〜|-)\s*(\d{1,2})時(\d{2})分?(.*)$/,
+    /^(\d{1,2})時\s*(?:〜|-)\s*(\d{1,2})時(.*)$/,
     /^(\d{1,2}):(\d{2})\s*から\s*(\d{1,2}):(\d{2})(.*)$/,
   ]
 
@@ -304,8 +550,8 @@ function parseInlineTitle(line: string): string | null {
   const cleaned = cleanLinePrefix(line)
 
   const patterns = [
-    /^\d{1,2}:\d{2}\s*〜\s*\d{1,2}:\d{2}\s*(.+)$/,
-    /^\d{1,2}時\d{0,2}分?\s*〜\s*\d{1,2}時\d{0,2}分?\s*(.+)$/,
+    /^\d{1,2}:\d{2}\s*(?:〜|-)\s*\d{1,2}:\d{2}\s*(.+)$/,
+    /^\d{1,2}時\d{0,2}分?\s*(?:〜|-)\s*\d{1,2}時\d{0,2}分?\s*(.+)$/,
   ]
 
   for (const pattern of patterns) {

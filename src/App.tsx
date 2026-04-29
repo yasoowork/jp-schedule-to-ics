@@ -50,7 +50,14 @@ function App() {
       setMessage("ICSファイルを生成しました。")
     } catch (error) {
       console.error(error)
-      setMessage("ICSファイルの生成に失敗しました。")
+
+      if (error instanceof Error) {
+        setMessage(
+          `ICSファイルの生成に失敗しました。\n${error.message}`
+        )
+      } else {
+        setMessage("ICSファイルの生成に失敗しました。")
+      }
     }
   }
 

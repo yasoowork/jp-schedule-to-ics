@@ -193,6 +193,7 @@ body {
 .message {
   margin-top: 16px;
   color: #93c5fd;
+  white-space: pre-line;
 }
 
 .warning-box {

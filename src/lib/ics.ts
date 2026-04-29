@@ -6,27 +6,36 @@ type IcsDateArray =
   | [number, number, number, number, number]
 
 export function generateICS(events: ScheduleEvent[]): string {
-  const result = createEvents(
-    events.map((event) => ({
-      title: event.title,
+  for (const event of events) {
+    if (event.end < event.start) {
+      throw new Error(
+        "終了時刻が開始時刻より前の予定があります。"
+      )
+    }
+  }
 
-      start: event.allDay
-        ? toAllDayDateArray(event.start)
-        : toDateTimeArray(event.start),
+  const icsEvents = events.map((event) => ({
+    title: event.title,
 
-      end: event.allDay
-        ? toAllDayDateArray(event.end)
-        : toDateTimeArray(event.end),
+    start: event.allDay
+      ? toAllDayDateArray(event.start)
+      : toDateTimeArray(event.start),
 
-      description: event.note || undefined,
+    end: event.allDay
+      ? toAllDayDateArray(event.end)
+      : toDateTimeArray(event.end),
 
-      startOutputType: "local",
+    description: event.note || undefined,
 
-      allDay: event.allDay ?? false,
-    }))
-  )
+    startOutputType: "local" as const,
+  }))
+
+  console.log("icsEvents", icsEvents)
+
+  const result = createEvents(icsEvents)
 
   if (result.error || !result.value) {
+    console.error("ics error", result.error)
     throw new Error("ICSファイルの生成に失敗しました")
   }
 

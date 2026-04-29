@@ -103,16 +103,81 @@ describe("parseScheduleText", () => {
     expect(result.events[0].note).toContain("田中")
   })
 
-  it("日付範囲を終日予定として解析できる", () => {
-    const result = parseScheduleText(
-      `5/2〜5/4 GW休館`,
-      { defaultYear: 2026 }
-    )
+    it("日付範囲を終日予定として解析できる", () => {
+        const result = parseScheduleText(
+        `5/2〜5/4 GW休館`,
+        { defaultYear: 2026 }
+        )
 
-    expect(result.events).toHaveLength(1)
-    expect(result.events[0].title).toBe("5/2〜5/4 GW休館")
-    expect(result.events[0].start).toEqual(new Date(2026, 4, 2))
-    expect(result.events[0].end).toEqual(new Date(2026, 4, 5))
-    expect(result.events[0].allDay).toBe(true)
-  })
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("5/2〜5/4 GW休館")
+        expect(result.events[0].start).toEqual(new Date(2026, 4, 2))
+        expect(result.events[0].end).toEqual(new Date(2026, 4, 5))
+        expect(result.events[0].allDay).toBe(true)
+    })
+
+    it("ハイフン区切りの一行予定を解析できる", () => {
+        const result = parseScheduleText(
+            `2/3 18:00-19:00 仕事`,
+            { defaultYear: 2026 }
+        )
+
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("仕事")
+        expect(result.events[0].start).toEqual(new Date(2026, 1, 3, 18, 0))
+        expect(result.events[0].end).toEqual(new Date(2026, 1, 3, 19, 0))
+    })
+
+    it("コロン無し時間を解析できる", () => {
+        const result = parseScheduleText(
+            `3/4 1700〜1800 仕事`,
+            { defaultYear: 2026 }
+        )
+
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("仕事")
+        expect(result.events[0].start).toEqual(new Date(2026, 2, 4, 17, 0))
+        expect(result.events[0].end).toEqual(new Date(2026, 2, 4, 18, 0))
+    })
+
+    it("PM表記を解析できる", () => {
+        const result = parseScheduleText(
+            `3/4 PM5:00〜PM6:00 仕事`,
+            { defaultYear: 2026 }
+        )
+
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("仕事")
+        expect(result.events[0].start).toEqual(new Date(2026, 2, 4, 17, 0))
+        expect(result.events[0].end).toEqual(new Date(2026, 2, 4, 18, 0))
+    })
+
+    it("pm短縮表記を解析できる", () => {
+        const result = parseScheduleText(
+            `3/4 5pm-6pm 仕事`,
+            { defaultYear: 2026 }
+        )
+
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("仕事")
+        expect(result.events[0].start).toEqual(new Date(2026, 2, 4, 17, 0))
+        expect(result.events[0].end).toEqual(new Date(2026, 2, 4, 18, 0))
+    })
+
+    it("日付と時間が同じ行で、予定名が次行にある形式を解析できる", () => {
+        const result = parseScheduleText(
+            `2/3 15:00〜16:00
+        仕事`,
+            { defaultYear: 2026 }
+        )
+
+        expect(result.events).toHaveLength(1)
+        expect(result.events[0].title).toBe("仕事")
+        expect(result.events[0].start).toEqual(new Date(2026, 1, 3, 15, 0))
+        expect(result.events[0].end).toEqual(new Date(2026, 1, 3, 16, 0))
+    })
+
+
+
+
 })
