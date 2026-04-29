@@ -42,18 +42,6 @@ function App() {
         </p>
       </header>
 
-      <section className="section info-section">
-        <h2>使い方</h2>
-        <ol>
-          <li>スケジュール文を貼り付けます。</li>
-          <li>解析結果を確認し、必要に応じて修正します。</li>
-          <li>ICSファイルをダウンロードしてカレンダーに登録します。</li>
-        </ol>
-        <p>
-          入力内容はサーバーに送信されず、ブラウザ内で処理されます。
-        </p>
-      </section>
-
       <section className="section">
         <h2>1. スケジュール文を貼り付け</h2>
 
@@ -85,20 +73,54 @@ function App() {
         {message && <p className="message">{message}</p>}
       </section>
 
-      <section className="section info-section">
-        <h2>免責</h2>
-        <p>
-          生成結果は必ず確認してください。本ツールによる予定の誤登録、通知漏れ、損害等について責任は負いません。
-        </p>
-      </section>
-
       <footer className="footer">
-        <p>
+        <div className="footer-section">
+          <h3>対応しているテキスト例</h3>
+
+          <pre className="footer-example">{`・5/2（土）
+担当者：田中
+17:00〜18:00
+キックボクシング`}</pre>
+
+          <p>
+            日付行、時間行、予定名行が分かれている日本語スケジュール文に対応しています。
+          </p>
+        </div>
+
+        <div className="footer-section">
+          <h3>プライバシー</h3>
+          <p>
+            入力内容はサーバーに送信されず、ブラウザ内で処理されます。
+          </p>
+        </div>
+
+        <div className="footer-section">
+          <h3>免責</h3>
+          <p>
+            生成結果は必ず確認してください。本ツールによる予定の誤登録、通知漏れ、損害等について責任は負いません。
+          </p>
+        </div>
+        <div className="footer-section">
+          <h3>不具合報告</h3>
+
+          <p>
+            対応できない形式や不具合があれば、
+            <a
+              href="https://github.com/yasoowork/jp-schedule-to-ics/issues"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub Issues
+            </a>
+            までご連絡ください。
+          </p>
+        </div>
+        <div className="footer-bottom">
           Created by{" "}
           <a href="https://yasoo.work" target="_blank" rel="noreferrer">
             yasoo.work
           </a>
-        </p>
+        </div>
       </footer>
     </main>
   )

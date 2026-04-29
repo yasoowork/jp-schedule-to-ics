@@ -103,7 +103,9 @@ function parseDateLine(
   line: string,
   defaultYear: number
 ): { year: number; month: number; day: number } | null {
-  const cleaned = line.replace(/^■+/, "").trim()
+  const cleaned = line
+  .replace(/^[■・●◆◇★☆]+/, "")
+  .trim()
 
   const slashDate = cleaned.match(
     /^(?:(\d{4})[\/.-])?(\d{1,2})[\/.-](\d{1,2})/
