@@ -180,6 +180,24 @@ body {
   font-size: 14px;
 }
 
+.event-detail-editor textarea {
+  width: 100%;
+  min-height: 64px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #334155;
+  border-radius: 10px;
+
+  background: #111827;
+  color: #e2e8f0;
+
+  font-size: 14px;
+  line-height: 1.6;
+
+  resize: vertical;
+}
+
 .danger-button {
   padding: 10px 14px;
   border: none;

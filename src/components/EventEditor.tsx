@@ -125,12 +125,12 @@ export function EventEditor({ events, onChange }: EventEditorProps) {
 
                 <label>
                   メモ
-                  <input
-                    type="text"
+                  <textarea
                     value={event.note ?? ""}
                     onChange={(e) =>
                       updateEvent(index, "note", e.target.value)
                     }
+                    rows={2}
                   />
                 </label>
               </div>
