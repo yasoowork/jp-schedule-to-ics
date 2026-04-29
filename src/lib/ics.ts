@@ -1,15 +1,28 @@
 import { createEvents } from "ics"
 import type { ScheduleEvent } from "../types/event"
 
-type IcsDateArray = [number, number, number, number, number]
+type IcsDateArray =
+  | [number, number, number]
+  | [number, number, number, number, number]
 
 export function generateICS(events: ScheduleEvent[]): string {
   const result = createEvents(
     events.map((event) => ({
       title: event.title,
-      start: toIcsDateArray(event.start),
-      end: toIcsDateArray(event.end),
+
+      start: event.allDay
+        ? toAllDayDateArray(event.start)
+        : toDateTimeArray(event.start),
+
+      end: event.allDay
+        ? toAllDayDateArray(event.end)
+        : toDateTimeArray(event.end),
+
       description: event.note || undefined,
+
+      startOutputType: "local",
+
+      allDay: event.allDay ?? false,
     }))
   )
 
@@ -20,12 +33,20 @@ export function generateICS(events: ScheduleEvent[]): string {
   return result.value
 }
 
-function toIcsDateArray(date: Date): IcsDateArray {
+function toDateTimeArray(date: Date): IcsDateArray {
   return [
     date.getFullYear(),
     date.getMonth() + 1,
     date.getDate(),
     date.getHours(),
     date.getMinutes(),
+  ]
+}
+
+function toAllDayDateArray(date: Date): IcsDateArray {
+  return [
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
   ]
 }

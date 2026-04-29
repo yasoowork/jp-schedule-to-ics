@@ -1,4 +1,5 @@
 import type { ScheduleEvent } from "../types/event"
+import type { ParseResult } from "../types/parser"
 
 const DEFAULT_TITLE = "予定"
 
@@ -7,6 +8,13 @@ type DateInfo = {
   month: number
   day: number
   notes: string[]
+}
+
+type DateRangeInfo = {
+  startMonth: number
+  startDay: number
+  endMonth: number
+  endDay: number
 }
 
 type TimeRange = {
@@ -22,7 +30,7 @@ type TitleResult = {
   index: number
 }
 
-export function parseScheduleText(text: string): ScheduleEvent[] {
+export function parseScheduleText(text: string): ParseResult {
   const defaultYear = new Date().getFullYear()
 
   const lines = normalizeText(text)
@@ -31,6 +39,8 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
     .filter((line) => line.length > 0)
 
   const events: ScheduleEvent[] = []
+  const unparsedLines: string[] = []
+  const warnings: string[] = []
 
   let currentYear = defaultYear
   let currentMonth: number | null = null
@@ -42,6 +52,30 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
     const line = lines[i]
 
     if (isHeaderLine(line) || isSeparatorLine(line)) {
+      continue
+    }
+
+    const dateRange = parseDateRange(line)
+    if (dateRange) {
+      const start = new Date(
+        defaultYear,
+        dateRange.startMonth - 1,
+        dateRange.startDay
+      )
+
+      const end = new Date(
+        defaultYear,
+        dateRange.endMonth - 1,
+        dateRange.endDay + 1
+      )
+
+      events.push({
+        title: cleanTitleLine(line),
+        start,
+        end,
+        allDay: true,
+      })
+
       continue
     }
 
@@ -57,7 +91,14 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
 
     const timeRange = parseTimeRange(line)
     if (timeRange && currentMonth !== null && currentDay !== null) {
-      const titleResult = findNextTitle(lines, i + 1, defaultYear)
+      const inlineTitle = parseInlineTitle(line)
+
+      const titleResult: TitleResult = inlineTitle
+        ? {
+            title: inlineTitle,
+            index: i,
+          }
+        : findNextTitle(lines, i + 1, defaultYear)
 
       const start = new Date(
         currentYear,
@@ -86,6 +127,7 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
         start,
         end,
         note: notes.length > 0 ? notes.join("\n") : undefined,
+        allDay: false,
       })
 
       pendingEventNotes = []
@@ -95,10 +137,45 @@ export function parseScheduleText(text: string): ScheduleEvent[] {
 
     if (currentMonth !== null && currentDay !== null && isMemoLine(line)) {
       pendingEventNotes.push(cleanMemoLine(line))
+      continue
+    }
+
+    if (currentMonth !== null && currentDay !== null && !isMemoLine(line)) {
+      const start = new Date(currentYear, currentMonth - 1, currentDay)
+      const end = new Date(currentYear, currentMonth - 1, currentDay + 1)
+
+      events.push({
+        title: cleanTitleLine(line),
+        start,
+        end,
+        note:
+          pendingEventNotes.length > 0
+            ? unique([...currentDayNotes, ...pendingEventNotes]).join("\n")
+            : currentDayNotes.length > 0
+              ? currentDayNotes.join("\n")
+              : undefined,
+        allDay: true,
+      })
+
+      pendingEventNotes = []
+      continue
+    }
+
+    unparsedLines.push(line)
+  }
+
+  for (const event of events) {
+    if (event.title === DEFAULT_TITLE) {
+      warnings.push("予定名を取得できない予定があります。")
+      break
     }
   }
 
-  return events
+  return {
+    events,
+    unparsedLines: unique(unparsedLines),
+    warnings: unique(warnings),
+  }
 }
 
 function normalizeText(text: string): string {
@@ -115,10 +192,9 @@ function normalizeText(text: string): string {
 
 function parseDateLine(line: string, defaultYear: number): DateInfo | null {
   const cleaned = cleanLinePrefix(line)
-    .replace(/\([^)]*\)/g, "")
-    .trim()
+  const withoutWeekday = removeWeekdayParentheses(cleaned)
 
-  const slashDate = cleaned.match(
+  const slashDate = withoutWeekday.match(
     /^(?:(\d{4})[\/.-])?(\d{1,2})[\/.-](\d{1,2})(.*)$/
   )
 
@@ -131,7 +207,7 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
     }
   }
 
-  const jpDate = cleaned.match(
+  const jpDate = withoutWeekday.match(
     /^(?:(\d{4})年)?(\d{1,2})月(\d{1,2})日(.*)$/
   )
 
@@ -145,6 +221,23 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
   }
 
   return null
+}
+
+function parseDateRange(line: string): DateRangeInfo | null {
+  const cleaned = removeWeekdayParentheses(cleanLinePrefix(line))
+
+  const match = cleaned.match(
+    /(\d{1,2})\/(\d{1,2}).*?〜.*?(\d{1,2})\/(\d{1,2})/
+  )
+
+  if (!match) return null
+
+  return {
+    startMonth: Number(match[1]),
+    startDay: Number(match[2]),
+    endMonth: Number(match[3]),
+    endDay: Number(match[4]),
+  }
 }
 
 function parseTimeRange(line: string): TimeRange | null {
@@ -185,6 +278,25 @@ function parseTimeRange(line: string): TimeRange | null {
   return null
 }
 
+function parseInlineTitle(line: string): string | null {
+  const cleaned = cleanLinePrefix(line)
+
+  const patterns = [
+    /^\d{1,2}:\d{2}\s*〜\s*\d{1,2}:\d{2}\s*(.+)$/,
+    /^\d{1,2}時\d{0,2}分?\s*〜\s*\d{1,2}時\d{0,2}分?\s*(.+)$/,
+  ]
+
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern)
+    if (!match?.[1]) continue
+
+    const title = removeInlineNote(match[1])
+    if (title.length > 0) return title
+  }
+
+  return null
+}
+
 function findNextTitle(
   lines: string[],
   startIndex: number,
@@ -218,6 +330,8 @@ function extractNotes(text: string | undefined): string[] {
 
   const normalized = text
     .replace(/(担当者?\s*:?\s*)/g, "\n担当: ")
+    .replace(/(《担当\s*:?\s*([^》]+)》)/g, "\n担当: $2")
+    .replace(/(《([^》]+)》)/g, "\n担当: $2")
     .replace(/(講師\s*:?\s*)/g, "\n講師: ")
     .replace(/(インストラクター\s*:?\s*)/g, "\nインストラクター: ")
     .replace(/(場所\s*:?\s*)/g, "\n場所: ")
@@ -266,14 +380,17 @@ function isHeaderLine(line: string): boolean {
     line.includes("会員の皆様") ||
     line.includes("お知らせ") ||
     line.includes("スケジュールです") ||
+    line.includes("予定変更続き") ||
     line.includes("ご確認") ||
     line.includes("お願いいたします") ||
-    line.includes("時間変更")
+    line.includes("時間変更") ||
+    line.includes("スケジュール変更") ||
+    line.includes("その他の予定")
   )
 }
 
 function isSeparatorLine(line: string): boolean {
-  return /^[-━─ー=]+$/.test(line)
+  return /^[-━─ー=―]+$/.test(line)
 }
 
 function cleanLinePrefix(line: string): string {
@@ -281,12 +398,27 @@ function cleanLinePrefix(line: string): string {
 }
 
 function cleanTitleLine(line: string): string {
-  return cleanLinePrefix(line)
+  return removeInlineNote(cleanLinePrefix(line))
 }
 
 function cleanMemoLine(line: string): string {
-  return cleanLinePrefix(line)
-    .replace(/^※+/, "")
+  return cleanLinePrefix(line).replace(/^※+/, "").trim()
+}
+
+function removeInlineNote(text: string): string {
+  return text
+    .replace(/《[^》]+》/g, "")
+    .replace(/担当者?\s*:?\s*.+$/g, "")
+    .replace(/※.+$/g, "")
+    .trim()
+}
+
+function removeWeekdayParentheses(line: string): string {
+  return line
+    .replace(
+      /\((月|火|水|木|金|土|日|月・祝|火・祝|水・祝|木・祝|金・祝|土・祝|日・祝|祝|月祝|火祝|水祝|木祝|金祝|土祝|日祝)\)/g,
+      ""
+    )
     .trim()
 }
 

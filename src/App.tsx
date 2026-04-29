@@ -10,11 +10,27 @@ function App() {
   const [text, setText] = useState("")
   const [events, setEvents] = useState<ScheduleEvent[]>([])
   const [message, setMessage] = useState("")
+  const [unparsedLines, setUnparsedLines] = useState<string[]>([])
+  const [warnings, setWarnings] = useState<string[]>([])
 
   const handleParse = () => {
-    const parsed = parseScheduleText(text)
-    setEvents(parsed)
-    setMessage(`${parsed.length}件の予定を解析しました。`)
+    const result = parseScheduleText(text)
+
+    setEvents(result.events)
+    setUnparsedLines(result.unparsedLines)
+    setWarnings(result.warnings)
+
+    let nextMessage = `${result.events.length}件の予定を解析しました。`
+
+    if (result.unparsedLines.length > 0) {
+      nextMessage += ` 未解析: ${result.unparsedLines.length}件`
+    }
+
+    if (result.warnings.length > 0) {
+      nextMessage += " 警告あり"
+    }
+
+    setMessage(nextMessage)
   }
 
   const handleDownload = () => {
@@ -71,13 +87,37 @@ function App() {
         </button>
 
         {message && <p className="message">{message}</p>}
+
+        {warnings.length > 0 && (
+          <div className="warning-box">
+            <h3>警告</h3>
+
+            <ul>
+              {warnings.map((warning, index) => (
+                <li key={index}>{warning}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {unparsedLines.length > 0 && (
+          <div className="warning-box">
+            <h3>解析できなかった行</h3>
+
+            <ul>
+              {unparsedLines.map((line, index) => (
+                <li key={index}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       <footer className="footer">
         <div className="footer-section">
           <h3>対応しているテキスト例</h3>
 
-          <pre className="footer-example">{`・5/2（土）
+          <pre className="footer-example">{`■5/2（土）
 担当者：田中
 17:00〜18:00
 キックボクシング`}</pre>
@@ -89,6 +129,7 @@ function App() {
 
         <div className="footer-section">
           <h3>プライバシー</h3>
+
           <p>
             入力内容はサーバーに送信されず、ブラウザ内で処理されます。
           </p>
@@ -96,10 +137,12 @@ function App() {
 
         <div className="footer-section">
           <h3>免責</h3>
+
           <p>
             生成結果は必ず確認してください。本ツールによる予定の誤登録、通知漏れ、損害等について責任は負いません。
           </p>
         </div>
+
         <div className="footer-section">
           <h3>不具合報告</h3>
 
@@ -115,6 +158,7 @@ function App() {
             までご連絡ください。
           </p>
         </div>
+
         <div className="footer-bottom">
           Created by{" "}
           <a href="https://yasoo.work" target="_blank" rel="noreferrer">

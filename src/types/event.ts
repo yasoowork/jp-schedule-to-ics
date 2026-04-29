@@ -3,4 +3,5 @@ export type ScheduleEvent = {
   start: Date
   end: Date
   note?: string
+  allDay?: boolean
 }
