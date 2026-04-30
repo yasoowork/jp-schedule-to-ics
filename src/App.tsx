@@ -221,7 +221,7 @@ function App() {
         <div className="footer-section">
           <h3>Related</h3>
 
-          <div className="footer-inline-links">
+          <p className="footer-inline-links">
             <a
               href="https://amzn.to/4ujjP6S"
               target="_blank"
@@ -249,7 +249,7 @@ function App() {
             >
               PC & Accessories
             </a>
-          </div>
+          </p>
         </div>
 
         <div className="footer-bottom">

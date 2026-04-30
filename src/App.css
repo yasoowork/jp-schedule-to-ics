@@ -21,9 +21,11 @@ body {
     BlinkMacSystemFont,
     sans-serif;
 }
+
 p {
   margin: 2px 0px;
 }
+
 #root {
   width: 1126px;
   max-width: 100%;
@@ -165,6 +167,12 @@ p {
   font-size: 13px;
 }
 
+.compact-event-meta span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.4;
+}
+
 .compact-event-actions {
   display: flex;
   gap: 8px;
@@ -279,15 +287,6 @@ p {
 
   color: #94a3b8;
   font-size: 13px;
-}
-
-.footer-links {
-  margin: 8px 0 0;
-  padding-left: 18px;
-}
-
-.footer-links li {
-  margin-bottom: 6px;
 }
 
 .footer-section {
