@@ -171,6 +171,14 @@ function App() {
         </div>
 
         <div className="footer-section">
+          <h3>広告・アクセス解析</h3>
+
+          <p>
+            Google Analytics・Google AdSense・Amazonアソシエイトを利用しています。
+          </p>
+        </div>
+
+        <div className="footer-section">
           <h3>免責</h3>
 
           <p>
