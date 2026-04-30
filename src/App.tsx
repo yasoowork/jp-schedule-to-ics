@@ -131,7 +131,7 @@ function App() {
         <h2>3. ICSファイルをダウンロード</h2>
 
         <button type="button" className="primary-button" onClick={handleDownload}>
-          ICSをダウンロード
+          ダウンロード
         </button>
 
         {message && <p className="message">{message}</p>}
