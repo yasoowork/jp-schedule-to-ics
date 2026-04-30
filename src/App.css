@@ -21,7 +21,9 @@ body {
     BlinkMacSystemFont,
     sans-serif;
 }
-
+p {
+  margin: 2px 0px;
+}
 #root {
   width: 1126px;
   max-width: 100%;
@@ -30,6 +32,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .container {
@@ -154,6 +157,7 @@ body {
 .compact-event-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
   margin-top: 6px;
 
