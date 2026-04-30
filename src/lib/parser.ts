@@ -31,6 +31,18 @@ type TimeRange = {
   notes: string[]
 }
 
+type StartTimeOnly = {
+  hour: number
+  minute: number
+  title: string | null
+  notes: string[]
+}
+
+type StartTime = {
+  hour: number
+  minute: number
+}
+
 type DateTimeInfo = {
   year: number
   month: number
@@ -217,6 +229,59 @@ export function parseScheduleText(
         ...currentDayNotes,
         ...pendingEventNotes,
         ...(inlineTitle ? [] : timeRange.notes),
+      ])
+
+      events.push({
+        title: titleResult.title,
+        start,
+        end,
+        note: notes.length > 0 ? notes.join("\n") : undefined,
+        allDay: false,
+      })
+
+      pendingEventNotes = []
+      i = titleResult.index
+      continue
+    }
+
+    const startTimeOnly = parseStartTimeOnly(line)
+
+    if (startTimeOnly && currentMonth !== null && currentDay !== null) {
+      const nextStartTime = findNextStartTime(lines, i + 1)
+
+      const titleResult: TitleResult = startTimeOnly.title
+        ? {
+            title: startTimeOnly.title,
+            index: i,
+          }
+        : findNextTitle(lines, i + 1, defaultYear)
+
+      const start = new Date(
+        currentYear,
+        currentMonth - 1,
+        currentDay,
+        startTimeOnly.hour,
+        startTimeOnly.minute
+      )
+
+      const end = nextStartTime
+        ? new Date(
+            currentYear,
+            currentMonth - 1,
+            currentDay,
+            nextStartTime.hour,
+            nextStartTime.minute
+          )
+        : new Date(start)
+
+      if (!nextStartTime) {
+        end.setHours(end.getHours() + 1)
+      }
+
+      const notes = unique([
+        ...currentDayNotes,
+        ...pendingEventNotes,
+        ...startTimeOnly.notes,
       ])
 
       events.push({
@@ -633,6 +698,30 @@ function parseTimeRange(line: string): TimeRange | null {
   return null
 }
 
+function parseStartTimeOnly(line: string): StartTimeOnly | null {
+  const cleaned = cleanLinePrefix(line)
+  const match = cleaned.match(/^(\d{1,2}):(\d{2})(.*)$/)
+
+  if (!match) return null
+
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+
+  if (!isValidHourMinute(hour, minute)) {
+    return null
+  }
+
+  const rest = match[3].trim()
+  const title = rest.length > 0 ? cleanTitleLine(rest) : null
+
+  return {
+    hour,
+    minute,
+    title: title && title.length > 0 ? title : null,
+    notes: title ? [] : extractNotes(rest),
+  }
+}
+
 function parseInlineTitle(line: string): string | null {
   const cleaned = cleanLinePrefix(line)
 
@@ -678,6 +767,53 @@ function findNextTitle(
     title: DEFAULT_TITLE,
     index: startIndex,
   }
+}
+
+function findNextStartTime(
+  lines: string[],
+  startIndex: number
+): StartTime | null {
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i]
+
+    if (isHeaderLine(line) || isSeparatorLine(line)) {
+      continue
+    }
+
+    if (parseDateLine(line, new Date().getFullYear())) return null
+
+    if (
+      parseDateTimeLine(
+        line,
+        new Date().getFullYear(),
+        new Date().getFullYear()
+      )
+    ) {
+      return null
+    }
+
+    const timeRange = parseTimeRange(line)
+    if (timeRange) {
+      return {
+        hour: timeRange.startHour,
+        minute: timeRange.startMinute,
+      }
+    }
+
+    const startTimeOnly = parseStartTimeOnly(line)
+    if (startTimeOnly) {
+      return {
+        hour: startTimeOnly.hour,
+        minute: startTimeOnly.minute,
+      }
+    }
+
+    if (isMemoLine(line)) continue
+
+    return null
+  }
+
+  return null
 }
 
 function extractNotes(text: string | undefined): string[] {
