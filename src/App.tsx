@@ -211,7 +211,7 @@ function App() {
         </div>
 
         <div className="footer-section">
-          <h3>Resources</h3>
+          <h3>Related</h3>
 
           <div className="footer-inline-links">
             <a
