@@ -100,7 +100,7 @@ function App() {
 
         <div className="input-help">
           <span>
-            1行形式、複数行形式、全角数字、PM表記などに対応しています。
+            全角数字やAM/PM表記にも対応しています。
           </span>
 
           <span className="input-counter">
@@ -174,7 +174,7 @@ function App() {
           <h3>広告・アクセス解析</h3>
 
           <p>
-            Google Analytics・Google AdSense・Amazonアソシエイトを利用しています。
+            Google Analytics、Google AdSense、Amazonアソシエイトを利用しています。
           </p>
         </div>
 
