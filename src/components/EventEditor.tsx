@@ -58,8 +58,9 @@ export function EventEditor({ events, onChange }: EventEditorProps) {
           <div className="compact-event" key={index}>
             <div className="compact-event-main">
               <div className="compact-event-text">
-                <div className="compact-event-title">{event.title}</div>
-
+                <div className="compact-event-title">
+                  {truncateText(event.title, 50)}
+                </div>
                 <div className="compact-event-meta">
                   <span>
                     {formatDateTime(event.start)} - {formatTime(event.end)}
@@ -162,4 +163,9 @@ function formatTime(date: Date): string {
 
 function pad(value: number): string {
   return String(value).padStart(2, "0")
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength)}…`
 }

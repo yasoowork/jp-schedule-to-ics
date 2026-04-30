@@ -280,6 +280,10 @@ function normalizeText(text: string): string {
     .replace(/[０-９]/g, (char) =>
       String.fromCharCode(char.charCodeAt(0) - 0xfee0)
     )
+    .replace(/[Ａ-Ｚａ-ｚ]/g, (char) =>
+      String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+    )
+    .replace(/[－]/g, "-")
     .replace(/[／]/g, "/")
     .replace(/[．]/g, ".")
     .replace(/[　]/g, " ")
@@ -317,8 +321,8 @@ function normalizeText(text: string): string {
 
     // 5pm / 6am → 17:00 / 06:00
     .replace(
-      /\b(\d{1,2})\s*([AaPp][Mm])\b/g,
-      (_, hour, ampm) => {
+      /(^|[^\d:])(\d{1,2})\s*([AaPp][Mm])(?=\s|$|[、。,.])/g,
+      (_, prefix, hour, ampm) => {
         let h = Number(hour)
 
         if (/pm/i.test(ampm) && h < 12) {
@@ -329,9 +333,31 @@ function normalizeText(text: string): string {
           h = 0
         }
 
-        return `${String(h).padStart(2, "0")}:00`
+        return `${prefix}${String(h).padStart(2, "0")}:00`
       }
     )
+}
+
+function isValidMonthDay(month: number, day: number): boolean {
+  return (
+    Number.isInteger(month) &&
+    Number.isInteger(day) &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= 31
+  )
+}
+
+function isValidHourMinute(hour: number, minute: number): boolean {
+  return (
+    Number.isInteger(hour) &&
+    Number.isInteger(minute) &&
+    hour >= 0 &&
+    hour <= 47 &&
+    minute >= 0 &&
+    minute <= 59
+  )
 }
 
 function parseDateLine(line: string, defaultYear: number): DateInfo | null {
@@ -343,10 +369,17 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
   )
 
   if (slashDate) {
+    const month = Number(slashDate[2])
+    const day = Number(slashDate[3])
+
+    if (!isValidMonthDay(month, day)) {
+      return null
+    }
+
     return {
       year: slashDate[1] ? Number(slashDate[1]) : defaultYear,
-      month: Number(slashDate[2]),
-      day: Number(slashDate[3]),
+      month,
+      day,
       notes: extractNotes(slashDate[4]),
       hasExplicitYear: Boolean(slashDate[1]),
     }
@@ -357,10 +390,17 @@ function parseDateLine(line: string, defaultYear: number): DateInfo | null {
   )
 
   if (jpDate) {
+    const month = Number(jpDate[2])
+    const day = Number(jpDate[3])
+
+    if (!isValidMonthDay(month, day)) {
+      return null
+    }
+
     return {
       year: jpDate[1] ? Number(jpDate[1]) : defaultYear,
-      month: Number(jpDate[2]),
-      day: Number(jpDate[3]),
+      month,
+      day,
       notes: extractNotes(jpDate[4]),
       hasExplicitYear: Boolean(jpDate[1]),
     }
@@ -378,11 +418,23 @@ function parseDateRange(line: string): DateRangeInfo | null {
 
   if (!match) return null
 
+  const startMonth = Number(match[1])
+  const startDay = Number(match[2])
+  const endMonth = Number(match[3])
+  const endDay = Number(match[4])
+
+  if (
+    !isValidMonthDay(startMonth, startDay) ||
+    !isValidMonthDay(endMonth, endDay)
+  ) {
+    return null
+  }
+
   return {
-    startMonth: Number(match[1]),
-    startDay: Number(match[2]),
-    endMonth: Number(match[3]),
-    endDay: Number(match[4]),
+    startMonth,
+    startDay,
+    endMonth,
+    endDay,
   }
 }
 
@@ -405,40 +457,48 @@ function parseSingleLineEvent(
   if (!dateMatch) return null
 
   const beforeDate = cleaned.slice(0, dateMatch.index).trim()
-  const afterDate = cleaned.slice((dateMatch.index ?? 0) + dateMatch[0].length).trim()
+  const afterDate = cleaned
+    .slice((dateMatch.index ?? 0) + dateMatch[0].length)
+    .trim()
 
   const year = Number(dateMatch[1] ?? dateMatch[4] ?? currentYear ?? defaultYear)
   const month = Number(dateMatch[2] ?? dateMatch[5])
   const day = Number(dateMatch[3] ?? dateMatch[6])
 
+  if (!isValidMonthDay(month, day)) {
+    return null
+  }
+
   const timeRangeMatch = afterDate.match(timeRangePattern)
 
   if (timeRangeMatch) {
+    const startHour = Number(timeRangeMatch[1])
+    const startMinute = Number(timeRangeMatch[2])
+    const endHour = Number(timeRangeMatch[3])
+    const endMinute = Number(timeRangeMatch[4])
+
+    if (
+      !isValidHourMinute(startHour, startMinute) ||
+      !isValidHourMinute(endHour, endMinute)
+    ) {
+      return null
+    }
+
     const beforeTime = afterDate.slice(0, timeRangeMatch.index).trim()
     const afterTime = afterDate
       .slice((timeRangeMatch.index ?? 0) + timeRangeMatch[0].length)
       .trim()
 
-    const title = cleanTitleLine([beforeDate, beforeTime, afterTime].filter(Boolean).join(" "))
+    const title = cleanTitleLine(
+      [beforeDate, beforeTime, afterTime].filter(Boolean).join(" ")
+    )
 
     if (title.length === 0) return null
 
     return {
       title,
-      start: new Date(
-        year,
-        month - 1,
-        day,
-        Number(timeRangeMatch[1]),
-        Number(timeRangeMatch[2])
-      ),
-      end: new Date(
-        year,
-        month - 1,
-        day,
-        Number(timeRangeMatch[3]),
-        Number(timeRangeMatch[4])
-      ),
+      start: new Date(year, month - 1, day, startHour, startMinute),
+      end: new Date(year, month - 1, day, endHour, endMinute),
       allDay: false,
     }
   }
@@ -446,23 +506,25 @@ function parseSingleLineEvent(
   const startTimeOnlyMatch = afterDate.match(startTimeOnlyPattern)
 
   if (startTimeOnlyMatch) {
+    const startHour = Number(startTimeOnlyMatch[1])
+    const startMinute = Number(startTimeOnlyMatch[2])
+
+    if (!isValidHourMinute(startHour, startMinute)) {
+      return null
+    }
+
     const beforeTime = afterDate.slice(0, startTimeOnlyMatch.index).trim()
     const afterTime = afterDate
       .slice((startTimeOnlyMatch.index ?? 0) + startTimeOnlyMatch[0].length)
       .trim()
 
-    const title = cleanTitleLine([beforeDate, beforeTime, afterTime].filter(Boolean).join(" "))
+    const title = cleanTitleLine(
+      [beforeDate, beforeTime, afterTime].filter(Boolean).join(" ")
+    )
 
     if (title.length === 0) return null
 
-    const start = new Date(
-      year,
-      month - 1,
-      day,
-      Number(startTimeOnlyMatch[1]),
-      Number(startTimeOnlyMatch[2])
-    )
-
+    const start = new Date(year, month - 1, day, startHour, startMinute)
     const end = new Date(start)
     end.setHours(end.getHours() + 1)
 
@@ -493,6 +555,9 @@ function parseDateTimeLine(
   const year = Number(dateMatch[1] ?? dateMatch[5] ?? currentYear ?? defaultYear)
   const month = Number(dateMatch[2] ?? dateMatch[6])
   const day = Number(dateMatch[3] ?? dateMatch[7])
+  if (!isValidMonthDay(month, day)) {
+    return null
+  }
   const timeText = dateMatch[4] ?? dateMatch[8]
 
   const timeRange = parseTimeRange(timeText)
@@ -523,20 +588,42 @@ function parseTimeRange(line: string): TimeRange | null {
     if (!match) continue
 
     if (match.length === 6) {
+      const startHour = Number(match[1])
+      const startMinute = Number(match[2])
+      const endHour = Number(match[3])
+      const endMinute = Number(match[4])
+
+      if (
+        !isValidHourMinute(startHour, startMinute) ||
+        !isValidHourMinute(endHour, endMinute)
+      ) {
+        return null
+      }
+
       return {
-        startHour: Number(match[1]),
-        startMinute: Number(match[2]),
-        endHour: Number(match[3]),
-        endMinute: Number(match[4]),
+        startHour,
+        startMinute,
+        endHour,
+        endMinute,
         notes: extractNotes(match[5]),
       }
     }
 
     if (match.length === 4) {
+      const startHour = Number(match[1])
+      const endHour = Number(match[2])
+
+      if (
+        !isValidHourMinute(startHour, 0) ||
+        !isValidHourMinute(endHour, 0)
+      ) {
+        return null
+      }
+
       return {
-        startHour: Number(match[1]),
+        startHour,
         startMinute: 0,
-        endHour: Number(match[2]),
+        endHour,
         endMinute: 0,
         notes: extractNotes(match[3]),
       }

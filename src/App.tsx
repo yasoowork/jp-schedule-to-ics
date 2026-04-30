@@ -7,6 +7,7 @@ import { parseScheduleText } from "./lib/parser"
 import type { ScheduleEvent } from "./types/event"
 
 function App() {
+  const MAX_TEXT_LENGTH = 10000
   const [text, setText] = useState("")
   const [rolloverYear, setRolloverYear] = useState(true)
   const [events, setEvents] = useState<ScheduleEvent[]>([])
@@ -76,6 +77,7 @@ function App() {
         <textarea
           className="textarea"
           rows={14}
+          maxLength={MAX_TEXT_LENGTH}
           placeholder={`例：
 
 5/2 18:00〜19:00 キックボクシング
@@ -89,9 +91,15 @@ function App() {
           onChange={(e) => setText(e.target.value)}
         />
 
-        <p className="input-help">
-          1行形式・複数行形式・全角数字・PM表記などに対応しています。
-        </p>
+        <div className="input-help">
+          <span>
+            1行形式・複数行形式・全角数字・PM表記などに対応しています。
+          </span>
+
+          <span className="input-counter">
+            {text.length} / {MAX_TEXT_LENGTH}文字
+          </span>
+        </div>
 
         <label className="checkbox-label">
           <input
@@ -139,7 +147,7 @@ function App() {
 
             <ul>
               {unparsedLines.map((line, index) => (
-                <li key={index}>{line}</li>
+                <li key={index}>{truncateText(line, 50)}</li>
               ))}
             </ul>
           </div>
@@ -206,6 +214,11 @@ function downloadTextFile(text: string, filename: string) {
   document.body.removeChild(link)
 
   URL.revokeObjectURL(url)
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength)}…`
 }
 
 export default App
