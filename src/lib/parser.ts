@@ -108,13 +108,13 @@ export function parseScheduleText(
     const dateRange = parseDateRange(line)
     if (dateRange) {
       const start = new Date(
-        defaultYear,
+        currentYear,
         dateRange.startMonth - 1,
         dateRange.startDay
       )
 
       const end = new Date(
-        defaultYear,
+        currentYear,
         dateRange.endMonth - 1,
         dateRange.endDay + 1
       )

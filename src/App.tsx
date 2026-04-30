@@ -172,6 +172,22 @@ function App() {
         </div>
 
         <div className="footer-section">
+          <h3>対応入力形式</h3>
+
+          <p>
+            対応しているスケジュール文の形式は{" "}
+            <a
+              href="https://github.com/yasoowork/jp-schedule-to-ics"
+              target="_blank"
+              rel="noreferrer"
+            >
+              README
+            </a>{" "}
+            をご確認ください。
+          </p>
+        </div>
+
+        <div className="footer-section">
           <h3>不具合報告</h3>
 
           <p>

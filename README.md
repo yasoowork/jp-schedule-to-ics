@@ -10,6 +10,10 @@ Convert Japanese schedule text into iCalendar (.ics) files.
 * Works entirely in browser
 * No server required
 * Year rollover support (Dec → Jan)
+* Supports one-line and multi-line formats
+* Supports all-day and date-range events
+* Supports Japanese full-width characters
+* Supports AM/PM and late-night times (e.g. 25:00)
 
 ## Demo
 
@@ -18,11 +22,21 @@ https://schedule.yasoo.work
 ## Example Input
 
 ```text
-■5/2（土）
-担当者：田中
-17:00〜18:00
-キックボクシング
+5/2 18:00〜19:00 キックボクシング
+
+5/3
+20:00~21:00
+柔術
+
+5/4 20:00 ボクシング
+
+5/5
+18:00 作業
+20:00 帰宅
+
+５／６ ＰＭ5:00〜ＰＭ6:00 イベント
 ```
+
 
 ## Supported Formats
 
@@ -39,8 +53,14 @@ https://schedule.yasoo.work
 
 ```text
 17:00〜18:00
+17:00-18:00
 17時〜18時
+1700〜1800
+23:00〜25:00
+PM5:00〜PM6:00
+5pm-6pm
 17:00〜18:00 キックボクシング
+18:00 キックボクシング (defaults to 1 hour)
 ```
 
 ### Date Range
