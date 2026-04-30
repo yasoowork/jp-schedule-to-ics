@@ -298,7 +298,14 @@ export function parseScheduleText(
     }
 
     if (currentMonth !== null && currentDay !== null && isMemoLine(line)) {
-      pendingEventNotes.push(cleanMemoLine(line))
+      const memo = cleanMemoLine(line)
+
+      if (isDayScopedMemoLine(line)) {
+        currentDayNotes = unique([...currentDayNotes, memo])
+      } else {
+        pendingEventNotes.push(memo)
+      }
+
       continue
     }
 
@@ -866,6 +873,16 @@ function isMemoLine(line: string): boolean {
     cleaned.includes("変更") ||
     cleaned.includes("代行") ||
     cleaned.includes("フリーミット")
+  )
+}
+
+function isDayScopedMemoLine(line: string): boolean {
+  const cleaned = cleanLinePrefix(line)
+
+  return (
+    /^担当者?\s*:/.test(cleaned) ||
+    /^講師\s*:/.test(cleaned) ||
+    /^インストラクター\s*:/.test(cleaned)
   )
 }
 
