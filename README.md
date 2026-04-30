@@ -35,10 +35,19 @@ https://schedule.yasoo.work
 20:00 帰宅
 
 ５／６ ＰＭ5:00〜ＰＭ6:00 イベント
+
+5/7（日）
+担当：タナカ
+16:00〜16:50
+キックボクシング（初心者）
+17:00〜18:30
+キックボクシング（対人練習）
 ```
 
 
 ## Supported Formats
+
+Supports Japanese schedule messages from LINE, gyms, clubs, schools, and events.
 
 ### Date
 

@@ -30,8 +30,6 @@ export function generateICS(events: ScheduleEvent[]): string {
     startOutputType: "local" as const,
   }))
 
-  console.log("icsEvents", icsEvents)
-
   const result = createEvents(icsEvents)
 
   if (result.error || !result.value) {

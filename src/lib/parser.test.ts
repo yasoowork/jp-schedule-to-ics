@@ -92,7 +92,7 @@ describe("parseScheduleText", () => {
   it("担当者などのメモを note に入れる", () => {
     const result = parseScheduleText(
       `5/2
-担当者：田中
+担当者：タナカ
 17:00〜18:00
 キックボクシング`,
       { defaultYear: 2026 }
@@ -100,7 +100,7 @@ describe("parseScheduleText", () => {
 
     expect(result.events).toHaveLength(1)
     expect(result.events[0].note).toContain("担当")
-    expect(result.events[0].note).toContain("田中")
+    expect(result.events[0].note).toContain("タナカ")
   })
 
     it("日付範囲を終日予定として解析できる", () => {
@@ -177,7 +177,22 @@ describe("parseScheduleText", () => {
         expect(result.events[0].end).toEqual(new Date(2026, 1, 3, 16, 0))
     })
 
+    it("日付直下の担当メモを同じ日付ブロック内の複数予定に引き継ぐ", () => {
+    const result = parseScheduleText(
+        `5/4
+    担当：タナカ
 
+    13:00〜13:50
+    キックボクシング（初心者）
 
+    14:00〜15:20
+    キックボクシング（対人練習）`,
+        { defaultYear: 2026 }
+    )
+
+    expect(result.events).toHaveLength(2)
+    expect(result.events[0].note).toContain("担当:タナカ")
+    expect(result.events[1].note).toContain("担当:タナカ")
+    })
 
 })

@@ -393,7 +393,7 @@ function normalizeText(text: string): string {
 
     // 5pm / 6am → 17:00 / 06:00
     .replace(
-      /(^|[^\d:])(\d{1,2})\s*([AaPp][Mm])(?=\s|$|[、。,.])/g,
+      /(^|[^\d:])(\d{1,2})\s*([AaPp][Mm])(?=\s|$|[、。,.\-〜])/g,
       (_, prefix, hour, ampm) => {
         let h = Number(hour)
 

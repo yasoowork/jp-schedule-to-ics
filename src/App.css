@@ -252,6 +252,24 @@ body {
   border-top: 1px solid #334155;
 }
 
+.footer-inline-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.footer-links {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.footer-links li {
+  margin-bottom: 6px;
+}
+
 .footer-section {
   margin-bottom: 24px;
   text-align: left;

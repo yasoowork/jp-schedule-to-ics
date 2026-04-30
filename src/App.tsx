@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import "./App.css"
 
 import { EventEditor } from "./components/EventEditor"
@@ -14,6 +14,7 @@ function App() {
   const [message, setMessage] = useState("")
   const [unparsedLines, setUnparsedLines] = useState<string[]>([])
   const [warnings, setWarnings] = useState<string[]>([])
+  const resultSectionRef = useRef<HTMLElement | null>(null)
 
   const handleParse = () => {
     const result = parseScheduleText(text, { rolloverYear })
@@ -33,6 +34,12 @@ function App() {
     }
 
     setMessage(nextMessage)
+    requestAnimationFrame(() => {
+      resultSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    })
   }
 
   const handleDownload = () => {
@@ -115,7 +122,7 @@ function App() {
         </button>
       </section>
 
-      <section className="section">
+      <section className="section" ref={resultSectionRef}>
         <h2>2. 解析結果を確認・修正</h2>
         <EventEditor events={events} onChange={setEvents} />
       </section>
@@ -147,7 +154,7 @@ function App() {
 
             <ul>
               {unparsedLines.map((line, index) => (
-                <li key={index}>{truncateText(line, 50)}</li>
+                <li key={index}>{truncateText(line, 40)}</li>
               ))}
             </ul>
           </div>
@@ -201,6 +208,40 @@ function App() {
             </a>
             までご連絡ください。
           </p>
+        </div>
+
+        <div className="footer-section">
+          <h3>Resources</h3>
+
+          <div className="footer-inline-links">
+            <a
+              href="https://amzn.to/4ujjP6S"
+              target="_blank"
+              rel="noreferrer sponsored"
+            >
+              Martial Arts
+            </a>
+
+            <span>/</span>
+
+            <a
+              href="https://amzn.to/4ubZgJI"
+              target="_blank"
+              rel="noreferrer sponsored"
+            >
+              Supplements
+            </a>
+
+            <span>/</span>
+
+            <a
+              href="https://amzn.to/42FIAhO"
+              target="_blank"
+              rel="noreferrer sponsored"
+            >
+              PC & Accessories
+            </a>
+          </div>
         </div>
 
         <div className="footer-bottom">

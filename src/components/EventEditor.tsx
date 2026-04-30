@@ -1,6 +1,9 @@
 import { useState } from "react"
 import type { ScheduleEvent } from "../types/event"
 
+const TITLE_MAX_LENGTH = 30
+const NOTE_MAX_LENGTH = 30
+
 type EventEditorProps = {
   events: ScheduleEvent[]
   onChange: (events: ScheduleEvent[]) => void
@@ -59,14 +62,14 @@ export function EventEditor({ events, onChange }: EventEditorProps) {
             <div className="compact-event-main">
               <div className="compact-event-text">
                 <div className="compact-event-title">
-                  {truncateText(event.title, 50)}
+                  {truncateText(event.title, TITLE_MAX_LENGTH)}
                 </div>
                 <div className="compact-event-meta">
                   <span>
                     {formatDateTime(event.start)} - {formatTime(event.end)}
                   </span>
 
-                  {event.note && <span>{event.note}</span>}
+                  {event.note && <span>{truncateText(event.note, NOTE_MAX_LENGTH)}</span>}
                 </div>
               </div>
 
