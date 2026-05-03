@@ -350,7 +350,7 @@ p {
 
 .checkbox-label {
   display: block;
-  margin-top: 12px;
+  margin-top: 6px;
   margin-bottom: 12px;
   color: #cbd5e1;
   font-weight: 600;
@@ -374,9 +374,11 @@ p {
   gap: 14px;
 }
 
+
 .title-prefix-input {
-  flex: 1;
-  min-width: 0;
+  width: 220px;
+  max-width: 52%;
+  flex: 0 0 auto;
   padding: 8px 12px;
   border: 1px solid #243247;
   border-radius: 10px;
@@ -395,7 +397,7 @@ p {
 }
 
 .option-inline .checkbox-label {
-  margin: 0;
+  margin-left: auto;
   color: #94a3b8;
   font-size: 13px;
   font-weight: 600;
@@ -407,11 +409,4 @@ p {
   color: #94a3b8;
   font-size: 12px;
   font-weight: 600;
-}
-
-@media (max-width: 720px) {
-  .option-inline {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
