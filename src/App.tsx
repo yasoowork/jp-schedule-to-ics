@@ -115,7 +115,7 @@ function App() {
 
         <div className="option-inline">
           <p className="option-label">
-            予定名の先頭ラベル
+            予定名の先頭
           </p>
           <input
             className="title-prefix-input"
