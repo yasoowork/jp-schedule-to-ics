@@ -91,9 +91,7 @@ function App() {
           className="textarea"
           rows={14}
           maxLength={MAX_TEXT_LENGTH}
-          placeholder={`例：
-
-5/2 18:00〜19:00 キックボクシング
+          placeholder={`5/2 18:00〜19:00 キックボクシング
 
 5/3（月）
 20:00~21:00
@@ -113,28 +111,30 @@ function App() {
           </span>
         </div>
 
-        <div className="option-inline">
-          <p className="option-label">
-            予定名の先頭
-          </p>
-          <input
-            className="title-prefix-input"
-            type="text"
-            maxLength={30}
-            placeholder="例：【仕事】"
-            value={titlePrefix}
-            onChange={(e) => setTitlePrefix(e.target.value)}
-          />
+        <div className="option-row">
+          <label className="option-label" htmlFor="title-prefix">
+            予定名の先頭ラベル
+          </label>
 
-          <label className="checkbox-label">
+          <label className="checkbox-label compact-checkbox">
             <input
               type="checkbox"
               checked={rolloverYear}
               onChange={(e) => setRolloverYear(e.target.checked)}
             />
-            年またぎ補正
+            年またぎ自動補正
           </label>
         </div>
+
+        <input
+          id="title-prefix"
+          className="title-prefix-input"
+          type="text"
+          maxLength={30}
+          placeholder="【習い事】"
+          value={titlePrefix}
+          onChange={(e) => setTitlePrefix(e.target.value)}
+        />
 
         <button type="button" className="primary-button" onClick={handleParse}>
           解析する
