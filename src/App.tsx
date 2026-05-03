@@ -143,7 +143,11 @@ function App() {
 
       <section className="section" ref={resultSectionRef}>
         <h2>2. 解析結果を確認・修正</h2>
-        <EventEditor events={events} onChange={setEvents} />
+        <EventEditor
+          events={events}
+          titlePrefix={titlePrefix}
+          onChange={setEvents}
+        />
       </section>
 
       <section className="section">

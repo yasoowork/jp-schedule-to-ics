@@ -6,12 +6,13 @@ const NOTE_MAX_LENGTH = 30
 
 type EventEditorProps = {
   events: ScheduleEvent[]
+  titlePrefix: string
   onChange: (events: ScheduleEvent[]) => void
 }
 
-export function EventEditor({ events, onChange }: EventEditorProps) {
+export function EventEditor({ events, titlePrefix, onChange }: EventEditorProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-
+  
   const updateEvent = (
     index: number,
     field: keyof ScheduleEvent,
@@ -56,13 +57,14 @@ export function EventEditor({ events, onChange }: EventEditorProps) {
 
       {events.map((event, index) => {
         const isEditing = editingIndex === index
+        const displayTitle = `${titlePrefix.trim()}${event.title}`
 
         return (
           <div className="compact-event" key={index}>
             <div className="compact-event-main">
               <div className="compact-event-text">
                 <div className="compact-event-title">
-                  {truncateText(event.title, TITLE_MAX_LENGTH)}
+                  {truncateText(displayTitle, TITLE_MAX_LENGTH)}
                 </div>
                 <div className="compact-event-meta">
                   <span>
