@@ -10,6 +10,7 @@ function App() {
   const MAX_TEXT_LENGTH = 10000
   const [text, setText] = useState("")
   const [rolloverYear, setRolloverYear] = useState(true)
+  const [titlePrefix, setTitlePrefix] = useState("")
   const [events, setEvents] = useState<ScheduleEvent[]>([])
   const [message, setMessage] = useState("")
   const [unparsedLines, setUnparsedLines] = useState<string[]>([])
@@ -49,7 +50,13 @@ function App() {
     }
 
     try {
-      const icsText = generateICS(events)
+      const trimmedTitlePrefix = titlePrefix.trim()
+      const icsText = generateICS(
+        events.map((event) => ({
+          ...event,
+          title: `${trimmedTitlePrefix}${event.title}`,
+        }))
+      )
       const now = new Date()
       const filename =
         `jp-schedule-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.ics`
@@ -80,7 +87,6 @@ function App() {
 
       <section className="section">
         <h2>1. スケジュール文を貼り付け</h2>
-
         <textarea
           className="textarea"
           rows={14}
@@ -99,23 +105,36 @@ function App() {
         />
 
         <div className="input-help">
-          <span>
+          <p className="input-description">
             全角数字やAM/PM表記にも対応しています。
-          </span>
-
+          </p>
           <span className="input-counter">
             {text.length} / {MAX_TEXT_LENGTH}文字
           </span>
         </div>
 
-        <label className="checkbox-label">
+        <div className="option-inline">
+          <p className="option-label">
+            予定名の先頭
+          </p>
           <input
-            type="checkbox"
-            checked={rolloverYear}
-            onChange={(e) => setRolloverYear(e.target.checked)}
+            className="title-prefix-input"
+            type="text"
+            maxLength={30}
+            placeholder="例：【仕事】"
+            value={titlePrefix}
+            onChange={(e) => setTitlePrefix(e.target.value)}
           />
-          年またぎを自動補正
-        </label>
+
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={rolloverYear}
+              onChange={(e) => setRolloverYear(e.target.checked)}
+            />
+            年またぎ補正
+          </label>
+        </div>
 
         <button type="button" className="primary-button" onClick={handleParse}>
           解析する
@@ -129,7 +148,7 @@ function App() {
 
       <section className="section">
         <h2>3. ICSファイルをダウンロード</h2>
-
+        
         <button type="button" className="primary-button" onClick={handleDownload}>
           ダウンロード
         </button>
