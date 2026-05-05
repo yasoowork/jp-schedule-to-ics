@@ -229,15 +229,32 @@ function App() {
           <h3>不具合報告</h3>
 
           <p>
-            対応できない形式や不具合があれば、
+            対応できない形式や不具合があれば{" "}
             <a
               href="https://github.com/yasoowork/jp-schedule-to-ics/issues"
               target="_blank"
               rel="noreferrer"
             >
               GitHub Issues
-            </a>
+            </a>{" "}
             までご連絡ください。
+          </p>
+        </div>
+
+        <div className="footer-section">
+          <h3>Support</h3>
+
+          <p>
+            JP Schedule to ICS は個人開発で運営しています。
+            役に立った場合は{" "}
+            <a
+              href="https://github.com/sponsors/yasoowork"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub Sponsors
+            </a>{" "}
+            で応援いただけると助かります。
           </p>
         </div>
 
