@@ -152,7 +152,7 @@ function App() {
 
       <section className="section">
         <h2>3. ICSファイルをダウンロード</h2>
-        
+
         <button type="button" className="primary-button" onClick={handleDownload}>
           ダウンロード
         </button>
@@ -226,16 +226,16 @@ function App() {
         </div>
 
         <div className="footer-section">
-          <h3>不具合報告</h3>
+          <h3>フィードバック</h3>
 
           <p>
-            対応できない形式や不具合があれば{" "}
+            不具合報告・改善要望・対応できない形式などがあれば{" "}
             <a
-              href="https://github.com/yasoowork/jp-schedule-to-ics/issues"
+              href="https://feedback.yasoo.work/submit?service=JP%20Schedule%20to%20ICS"
               target="_blank"
               rel="noreferrer"
             >
-              GitHub Issues
+              YW Feedback
             </a>{" "}
             までご連絡ください。
           </p>
