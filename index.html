@@ -1,55 +1,44 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG29GW8VDN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
-      gtag('config', 'G-PG29GW8VDN');
-    </script>
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG29GW8VDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-    <!-- Google Adsense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7334427948355935"
-      crossorigin="anonymous"></script>
-    
-    <meta charset="UTF-8" />
+    gtag('config', 'G-PG29GW8VDN');
+  </script>
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
+  <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
 
-    <meta
-      name="description"
-      content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。"
-    />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta property="og:title" content="JP Schedule to ICS" />
-    <meta
-      property="og:description"
-      content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。"
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://schedule.yasoo.work" />
-    <meta property="og:image" content="https://schedule.yasoo.work/ogp.png" />
+  <meta name="description" content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="JP Schedule to ICS" />
-    <meta
-      name="twitter:description"
-      content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。"
-    />
-    <meta name="twitter:image" content="https://schedule.yasoo.work/ogp.png" />
+  <meta property="og:title" content="JP Schedule to ICS" />
+  <meta property="og:description" content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://schedule.yasoo.work" />
+  <meta property="og:image" content="https://schedule.yasoo.work/ogp.png" />
 
-    <title>JP Schedule to ICS</title>
-  </head>
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="JP Schedule to ICS" />
+  <meta name="twitter:description" content="日本語スケジュール文をカレンダー登録用のICSファイルに変換します。" />
+  <meta name="twitter:image" content="https://schedule.yasoo.work/ogp.png" />
 
-  <body>
-    <div id="root"></div>
+  <title>JP Schedule to ICS</title>
+</head>
 
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<body>
+  <div id="root"></div>
+
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
