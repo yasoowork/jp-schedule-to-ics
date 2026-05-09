@@ -197,7 +197,7 @@ function App() {
           <h3>広告・アクセス解析</h3>
 
           <p>
-            Google Analytics、Google AdSense、Amazonアソシエイトを利用しています。
+            Google Analytics、Amazonアソシエイトを利用しています。
           </p>
         </div>
 
