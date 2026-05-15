@@ -235,7 +235,7 @@ function App() {
               target="_blank"
               rel="noreferrer"
             >
-              YW Feedback
+              Hearth Feedback
             </a>{" "}
             までご連絡ください。
           </p>
